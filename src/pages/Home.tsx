@@ -51,6 +51,9 @@ export function Home() {
               Escolher história
             </a>
           </div>
+          <a href="#/sala" className="mt-4 inline-flex min-h-12 items-center gap-2 font-extrabold text-brand underline-offset-4 hover:underline">
+            <span aria-hidden>🔑</span> Recebeu um código de sala? Entre aqui
+          </a>
         </div>
       </section>
 

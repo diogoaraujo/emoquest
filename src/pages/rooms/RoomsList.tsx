@@ -100,8 +100,8 @@ function CreateRoom({ onCancel, onCreated }: { onCancel: () => void; onCreated: 
           os dados serão usados apenas para fins educativos e de acompanhamento do grupo.
         </Checkbox>
         <p className="text-sm text-ink/70">
-          Por padrão, resultados de grupo só aparecem para outras pessoas com no mínimo 5 participantes e os dados individuais são guardados por 365 dias.
-          Você pode ajustar isso depois.
+          Por padrão, resultados de grupo só aparecem para outras pessoas com no mínimo 3 participantes (com 2 é dupla, com 1 é individual — ninguém deixa de
+          participar) e os dados individuais são guardados por 90 dias. Você pode ajustar isso depois em Ajustes.
         </p>
         {error && <Alert>{error}</Alert>}
         <div className="flex flex-col gap-3 sm:flex-row">

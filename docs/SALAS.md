@@ -24,7 +24,7 @@ Navegador (GitHub Pages)                         API (Node + Fastify)           
 | `users` | nome, e-mail, hash da senha (scrypt) | identificável (responsável) |
 | `auth_tokens` | hash SHA-256 do token de login, expiração | segredo |
 | `rooms` | nome, dono, código de entrada, token do painel, k, retenção, aceite da base legal | configuração |
-| `participants` | UUID, hash do token do aparelho, versão e data do consentimento | **pseudonimizado** |
+| `participants` | UUID, hash do token do aparelho, versão e data do consentimento, faixa etária opcional (nunca a idade exata) | **pseudonimizado** |
 | `participant_identities` | nome/apelido informado (opcional) | **identificável — isolado** |
 | `game_sessions` | título, atividade, histórias, status, datas | configuração |
 | `responses` | cada escolha (história, momento, índice), efeitos calculados | pseudonimizado |
@@ -49,12 +49,12 @@ Isolamento: toda rota `/api/rooms/:roomId/*` filtra por `owner_id = usuário`. U
 Aplicada na leitura para participantes e visualizadores (`server/src/lib/analytics.ts`):
 
 1. **Só sessões encerradas.** Evita o *ataque de diferença*: comparar o agregado antes e depois de alguém terminar revelaria o resultado daquela pessoa.
-2. **Limiar k.** Sessões com menos de `max(k da sala, 5)` participantes ficam ocultas. Não é possível configurar k abaixo de 5.
+2. **Limiar k.** Sessões com menos de `max(k da sala, 3)` participantes ficam ocultas. Não é possível configurar k abaixo de 3. Com 2 pessoas a sessão é uma **dupla** e com 1 é **individual**: todos participam normalmente; só o resultado de grupo não é exibido.
 3. **Supressão de células pequenas.** Uma emoção predominante para menos de 3 pessoas aparece como "poucas", sem número.
 4. **Generalização.**
    - Médias de emoção são arredondadas a 1%.
    - Percentuais de predominância usam passos de 5%.
-   - O número de participantes é mostrado em faixas ("5 ou mais", "10 ou mais"), nunca exato.
+   - O número de participantes é mostrado em faixas ("3 ou mais", "5 ou mais", "10 ou mais"), nunca exato.
 5. **Sem identificadores nas respostas.** Os endpoints agregados leem só `session_aggregates`. Os testes verificam que nomes, `participantId` e e-mails nunca aparecem nessas respostas.
 
 O responsável vê valores exatos, porque é o controlador dos dados do grupo. Mesmo assim, os gráficos dele também vêm só dos agregados. Nomes aparecem apenas nas telas "Pessoas" e "Resultados individuais", e ficam ocultos por padrão na tela da sessão.
@@ -71,7 +71,7 @@ O responsável vê valores exatos, porque é o controlador dos dados do grupo. M
   - finalidade restrita, a educativa;
   - nenhuma decisão automatizada sobre o jovem.
 - **Retenção** (`server/src/lib/retention.ts`, na inicialização e a cada 24h):
-  - Depois de `retention_days` (30–730, padrão 365), respostas e resultados individuais são apagados.
+  - Depois de `retention_days` (30–730, padrão 90), respostas e resultados individuais são apagados.
   - Fica só o agregado de sessões com pelo menos k pessoas.
   - Sessões menores são apagadas por inteiro.
   - Participantes inativos são apagados.

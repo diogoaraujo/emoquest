@@ -1,0 +1,1 @@
+ALTER TABLE "participants" ADD COLUMN "age_band" text;

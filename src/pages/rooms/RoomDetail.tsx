@@ -7,6 +7,8 @@ import { QrCode } from '../../components/QrCode'
 import { btnBrand, btnPrimary, btnSecondary } from '../../components/ui'
 import { STORIES } from '../../data/stories'
 import { navigate } from '../../hooks/useHashRoute'
+import { AGE_BAND_LABEL } from '../../lib/age'
+import { GROUP_FORMAT_LABEL, groupFormat } from '../../lib/groupFormat'
 
 const TABS = [
   { id: 'sessoes', label: 'Sessões' },
@@ -69,6 +71,8 @@ function Page({ children }: { children: React.ReactNode }) {
 
 function Invite({ room }: { room: Room }) {
   const [projecting, setProjecting] = useState(false)
+  // Endereço curto onde se digita o código, ex.: "emoquest.app/#/sala"
+  const enterUrl = room.joinUrl.replace(/\/?#\/sala\/.*$/, '/#/sala').replace(/^https?:\/\//, '')
   const [copied, setCopied] = useState(false)
 
   async function copy() {
@@ -89,7 +93,9 @@ function Invite({ room }: { room: Room }) {
       <div className="w-full min-w-0 text-center sm:text-left">
         <p className="font-bold text-ink/75">Código da sala</p>
         <p className="font-display text-3xl font-extrabold tracking-[0.15em] break-all">{room.joinCode}</p>
-        <p className="mt-1 text-sm text-ink/70">Os jovens entram pelo QR Code ou pelo link, sem criar conta.</p>
+        <p className="mt-1 text-sm text-ink/70">
+          Os jovens entram pelo QR Code, pelo link ou digitando o código em <strong className="break-all">{enterUrl}</strong> — sem criar conta.
+        </p>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row">
           <button onClick={copy} className={btnSecondary}>
             {copied ? '✓ Link copiado' : 'Copiar link'}
@@ -104,7 +110,9 @@ function Invite({ room }: { room: Room }) {
         <div className="fixed inset-0 z-50 flex animate-fade flex-col items-center justify-center gap-4 bg-white p-6 text-center" role="dialog" aria-modal="true" aria-label="QR Code da sala">
           <p className="font-display text-2xl font-extrabold sm:text-4xl">Entre na sala “{room.name}”</p>
           <QrCode value={room.joinUrl} size={Math.min(window.innerWidth - 48, window.innerHeight - 260, 520)} />
-          <p className="text-lg">ou acesse o link e digite o código</p>
+          <p className="text-lg">
+            ou acesse <strong className="break-all">{enterUrl}</strong> e digite o código
+          </p>
           <p className="font-display text-4xl font-extrabold tracking-[0.2em] sm:text-6xl">{room.joinCode}</p>
           <button onClick={() => setProjecting(false)} className={btnPrimary} autoFocus>
             Fechar
@@ -153,6 +161,7 @@ function Sessions({ roomId }: { roomId: string }) {
                 <p className="font-display text-lg leading-tight font-extrabold">{s.title}</p>
                 <p className="text-sm text-ink/70">
                   {formatDate(s.createdAt)} · {s.completed} {s.completed === 1 ? 'concluiu' : 'concluíram'}
+                  {groupFormat(s.completed) && ` · ${GROUP_FORMAT_LABEL[groupFormat(s.completed)!]}`}
                 </p>
               </div>
               <StatusBadge status={s.status} />
@@ -289,7 +298,7 @@ function People({ roomId }: { roomId: string }) {
               <div className="min-w-0 flex-1">
                 <p className={`truncate font-bold ${p.displayName ? '' : 'text-ink/70 italic'}`}>{name}</p>
                 <p className="text-sm text-ink/70">
-                  Entrou em {formatDate(p.joinedAt)} · {p.sessionsCompleted} {p.sessionsCompleted === 1 ? 'atividade' : 'atividades'}
+                  {p.ageBand && `${AGE_BAND_LABEL[p.ageBand]} · `}Entrou em {formatDate(p.joinedAt)} · {p.sessionsCompleted} {p.sessionsCompleted === 1 ? 'atividade' : 'atividades'}
                 </p>
               </div>
               <button
@@ -362,12 +371,12 @@ function Settings({ room, onChange }: { room: Room; onChange: (r: Room) => void 
           <Field
             label="Tamanho mínimo do grupo (k)"
             type="number"
-            min={5}
+            min={3}
             max={50}
             inputMode="numeric"
             value={k}
             onChange={(e) => setK(Number(e.target.value))}
-            hint="Resultados de grupo só aparecem para participantes e no painel compartilhado quando pelo menos k pessoas concluíram. Mínimo: 5."
+            hint="Resultados de grupo só aparecem para participantes e no painel compartilhado quando pelo menos k pessoas concluíram. Mínimo: 3. Com 2 pessoas a sessão é uma dupla e com 1 é individual: todos participam normalmente, só o resultado de grupo fica oculto."
           />
           <Field
             label="Guardar dados individuais por (dias)"
@@ -377,7 +386,7 @@ function Settings({ room, onChange }: { room: Room; onChange: (r: Room) => void 
             inputMode="numeric"
             value={retention}
             onChange={(e) => setRetention(Number(e.target.value))}
-            hint="Depois desse prazo, nomes, respostas e resultados individuais são apagados. Ficam só os totais anônimos de sessões com pelo menos k pessoas."
+            hint="Padrão: 90 dias. Depois desse prazo, nomes, respostas e resultados individuais são apagados. Ficam só os totais anônimos de sessões com pelo menos k pessoas."
           />
           <button className={btnPrimary}>Salvar regras</button>
         </form>

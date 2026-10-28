@@ -5,8 +5,9 @@ WORKDIR /app
 COPY server/package*.json server/
 RUN cd server && npm ci
 COPY src/types.ts src/types.ts
-COPY src/data src/data
-COPY src/lib/scoring.ts src/lib/scoring.ts
+# Só o que a API usa (o banco de perguntas em src/data/perguntas fica de fora).
+COPY src/data/stories.ts src/data/emotions.ts src/data/
+COPY src/lib/scoring.ts src/lib/age.ts src/lib/groupFormat.ts src/lib/
 COPY server server
 RUN cd server && npm run build
 

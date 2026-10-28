@@ -8,6 +8,8 @@ import { Alert, Checkbox, Field, Spinner } from '../../components/forms'
 import { btnPrimary, btnSecondary } from '../../components/ui'
 import { getStory } from '../../data/stories'
 import { navigate } from '../../hooks/useHashRoute'
+import { ageProfile, isValidAge, MAX_AGE, MIN_AGE } from '../../lib/age'
+import { saveAgeProfile } from '../../lib/storage'
 import { EMOTION_IDS, type RunResult, type Scores, type Story } from '../../types'
 import { Play } from '../Play'
 import { Result } from '../Result'
@@ -39,6 +41,7 @@ export function JoinRoom({ code, sessionId }: { code: string; sessionId?: string
 function Consent({ code, onJoined }: { code: string; onJoined: (token: string) => void }) {
   const { data, error } = useAsync(() => api.publicRoom(code), [code])
   const [name, setName] = useState('')
+  const [age, setAge] = useState('')
   const [consent, setConsent] = useState(false)
   const [busy, setBusy] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
@@ -49,7 +52,10 @@ function Consent({ code, onJoined }: { code: string; onJoined: (token: string) =
     setBusy(true)
     setFormError(null)
     try {
-      const res = await api.join(code, { displayName: name.trim() || undefined, consent, consentVersion: data.consentVersion })
+      const ageNumber = age.trim() ? Number(age) : undefined
+      if (ageNumber !== undefined && !isValidAge(ageNumber)) throw new Error(`Confira a idade (entre ${MIN_AGE} e ${MAX_AGE} anos) ou deixe em branco.`)
+      const res = await api.join(code, { displayName: name.trim() || undefined, age: ageNumber, consent, consentVersion: data.consentVersion })
+      if (ageNumber !== undefined) saveAgeProfile(ageProfile(ageNumber))
       onJoined(res.participantToken)
     } catch (e) {
       setFormError((e as Error).message)
@@ -82,10 +88,16 @@ function Consent({ code, onJoined }: { code: string; onJoined: (token: string) =
       <section className="mt-5 rounded-[1.75rem] bg-white p-5 ring-1 ring-ink/5">
         <h2 className="font-display text-xl font-extrabold">Antes de entrar, o que acontece com seus dados</h2>
         <ul className="mt-3 space-y-2.5 text-base">
-          <li>📝 <strong>O que guardamos:</strong> o nome ou apelido que você quiser informar (é opcional), suas escolhas nas atividades e o resultado emocional.</li>
+          <li>
+            📝 <strong>O que guardamos:</strong> o nome ou apelido e a faixa etária que você quiser informar (os dois são opcionais), suas escolhas nas atividades e
+            o resultado emocional. Sua idade exata não é guardada.
+          </li>
           <li>🎯 <strong>Para quê:</strong> atividades educativas sobre emoções e para {room.ownerName} acompanhar como o grupo está, ao longo do tempo.</li>
           <li>🔒 <strong>Quem vê seu nome e suas respostas:</strong> somente {room.ownerName}, responsável pela sala. Ninguém mais.</li>
-          <li>👥 <strong>O que os outros veem:</strong> só resultados da turma inteira, sem nomes, e apenas quando pelo menos {room.minGroupSize} pessoas participaram.</li>
+          <li>
+            👥 <strong>O que os outros veem:</strong> só resultados da turma inteira, sem nomes, e apenas quando pelo menos {room.minGroupSize} pessoas participaram.
+            Se for em dupla ou individual, você participa normalmente e ninguém mais vê o resultado.
+          </li>
           <li>⏳ <strong>Por quanto tempo:</strong> até {room.retentionDays} dias. Depois disso, seus dados individuais são apagados automaticamente.</li>
           <li>🗑️ <strong>Seus direitos:</strong> você pode apagar sua participação quando quiser, aqui mesmo, ou pedir a {room.ownerName}.</li>
           <li>💛 <strong>Não é teste:</strong> o EmoQuest não é avaliação nem diagnóstico. Nenhuma emoção é boa ou ruim.</li>
@@ -103,6 +115,16 @@ function Consent({ code, onJoined }: { code: string; onJoined: (token: string) =
           onChange={(e) => setName(e.target.value)}
           maxLength={40}
           hint="Use só o primeiro nome ou um apelido que quem conduz reconheça. Pode deixar em branco."
+        />
+        <Field
+          label="Sua idade (opcional)"
+          type="number"
+          inputMode="numeric"
+          min={MIN_AGE}
+          max={MAX_AGE}
+          value={age}
+          onChange={(e) => setAge(e.target.value)}
+          hint="Guardamos só a faixa etária (13 a 16 ou 17 a 23 anos)."
         />
         <Checkbox checked={consent} onChange={setConsent}>
           Entendi como meus dados serão usados e quero participar. Sei que posso sair e apagar minha participação quando quiser.
@@ -281,7 +303,11 @@ function GroupCard({ stats, k }: { stats: PublicSessionStats; k: number }) {
         <p className="mt-2 text-ink/80">
           {stats.reason === 'aberta'
             ? 'O resultado da turma aparece quando quem conduz encerrar a atividade. Volte depois para ver!'
-            : `Para proteger a privacidade de todo mundo, o resultado da turma só aparece quando pelo menos ${k} pessoas participam.`}
+            : stats.format === 'individual'
+              ? 'Esta atividade foi individual, então não há resultado de turma. O seu resultado está logo acima.'
+              : stats.format === 'dupla'
+                ? 'Esta atividade foi em dupla. Para proteger a privacidade de vocês, o resultado conjunto não é mostrado.'
+                : `Para proteger a privacidade de todo mundo, o resultado da turma só aparece quando pelo menos ${k} pessoas participam.`}
         </p>
       ) : (
         <>

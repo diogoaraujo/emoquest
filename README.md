@@ -1,11 +1,13 @@
 # EmoQuest
 
-Jogo web interativo e educativo sobre emoções para adolescentes de 14 a 18 anos. Quem joga vive situações do cotidiano (escola nova, grupo do WhatsApp, véspera de prova, festa, domingo sem nada), faz escolhas que mudam o rumo da história e, no final, descobre qual emoção predominou — sempre com a mensagem de que **nenhuma emoção é boa ou ruim**.
+Jogo web interativo e educativo sobre emoções para jovens de 13 a 23 anos. Quem joga vive situações do cotidiano (escola, amizades, família, amor, trabalho, perdas, conquistas...), faz escolhas que mudam o rumo da história e, no final, descobre qual emoção predominou — sempre com a mensagem de que **nenhuma emoção é boa ou ruim**.
 
 ## Funcionalidades
 
-- **5 histórias com ramificações**: cada escolha leva a um caminho diferente e soma pontos às emoções.
-- **Jornada completa**: as 5 histórias em sequência, com um resultado acumulado.
+- **12 histórias com ramificações**: cada escolha leva a um caminho diferente e soma pontos às emoções.
+- **10 temas** (Escola, Amizades, Família, Amor e sexualidade, Quem eu sou, Futuro e trabalho, Respeito e diferenças, Momentos difíceis, Esporte e conquistas, Tempo livre), com jornada por tema e avisos nos temas sensíveis.
+- **Jornada completa**: todas as histórias em sequência, com um resultado acumulado.
+- **Partida rápida**: 10 perguntas sorteadas do **banco de perguntas** (1.000 por tema), escritas para a faixa etária de quem joga: 13–16 ou 17–23 anos. Quem tem menos de 13 joga sem os temas sensíveis. Formato e regras em [docs/PERGUNTAS.md](docs/PERGUNTAS.md).
 - **10 personagens originais** desenhados em SVG: Lumi (Alegria), Gota (Tristeza), Brasa (Raiva), Pipo (Medo), Azedinha (Nojinho), Turbo (Ansiedade), Mirra (Inveja), Rubi (Vergonha), Morno (Tédio) e Sépia (Nostalgia).
 - **Feedback a cada escolha**: o personagem da emoção que mais pesou aparece e comenta.
 - **Painel das emoções** em tempo real durante o jogo.
@@ -25,7 +27,7 @@ Cada **sala** é um grupo permanente (ex.: uma turma durante o ano letivo). Cada
 - **Dashboard interativo:** distribuição das emoções, emoção predominante, evolução no tempo, comparação entre sessões, KPIs, filtro por sessão e visão em tabela.
 - **Privacidade:**
   - Nomes ficam visíveis só para o responsável.
-  - Participantes e visualizadores do painel compartilhado veem apenas agregados anonimizados: k ≥ 5, só sessões encerradas, células pequenas ocultas e números arredondados.
+  - Participantes e visualizadores do painel compartilhado veem apenas agregados anonimizados: k ≥ 3 (com 2 é dupla e com 1 é individual, sem impedir a participação), só sessões encerradas, células pequenas ocultas e números arredondados.
   - Os jovens podem apagar a própria participação.
   - Há retenção automática.
 

@@ -6,13 +6,13 @@ import { HttpError, isUuid, type AppContext } from '../app'
 import { auditEvents, gameSessions, participantIdentities, participants, results, rooms, sessionAggregates } from '../db/schema'
 import { combineShares, ownerStats, refreshAggregate } from '../lib/analytics'
 import { joinCode, randomToken } from '../lib/crypto'
-import { getStory } from '../lib/game'
+import { getStory, STORIES } from '../lib/game'
 
 const roomBody = z.object({
   name: z.string().trim().min(2, 'Dê um nome para a sala.').max(80),
   description: z.string().trim().max(300).default(''),
-  minGroupSize: z.number().int().min(5, 'O mínimo para anonimização é 5 pessoas.').max(50).default(5),
-  retentionDays: z.number().int().min(30).max(730).default(365),
+  minGroupSize: z.number().int().min(3, 'O mínimo para anonimização é 3 pessoas.').max(50).default(3),
+  retentionDays: z.number().int().min(30).max(730).default(90),
 })
 
 const createRoomBody = roomBody.extend({
@@ -23,7 +23,7 @@ const sessionBody = z
   .object({
     title: z.string().trim().min(2, 'Dê um título para a sessão.').max(80),
     activity: z.enum(['historias', 'checkin']),
-    storyIds: z.array(z.string()).max(10).default([]),
+    storyIds: z.array(z.string()).max(STORIES.length).default([]),
   })
   .refine((s) => s.activity === 'checkin' || (s.storyIds.length > 0 && s.storyIds.every((id) => getStory(id))), {
     error: 'Escolha pelo menos uma história válida.',
@@ -150,7 +150,13 @@ export const roomRoutes =
       const user = await ctx.requireUser(req)
       const room = await ctx.requireOwnedRoom(user.id, req.params.roomId)
       const rows = await db
-        .select({ id: participants.id, displayName: participantIdentities.displayName, joinedAt: participants.createdAt, lastSeenAt: participants.lastSeenAt })
+        .select({
+          id: participants.id,
+          displayName: participantIdentities.displayName,
+          ageBand: participants.ageBand,
+          joinedAt: participants.createdAt,
+          lastSeenAt: participants.lastSeenAt,
+        })
         .from(participants)
         .leftJoin(participantIdentities, eq(participantIdentities.participantId, participants.id))
         .where(eq(participants.roomId, room.id))

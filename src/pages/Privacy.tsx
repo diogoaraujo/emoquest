@@ -38,8 +38,9 @@ export function Privacy() {
             <strong>Responsáveis:</strong> nome, e-mail e senha (guardada apenas como hash criptográfico).
           </li>
           <li>
-            <strong>Participantes:</strong> nome ou apelido, <em>opcional</em>; escolhas feitas nas atividades; resultados emocionais; data e hora. Não pedimos e-mail,
-            telefone, documento, foto nem localização, e não há campos de texto livre.
+            <strong>Participantes:</strong> nome ou apelido e faixa etária (13 a 16 ou 17 a 23 anos), ambos <em>opcionais</em>; escolhas feitas nas
+            atividades; resultados emocionais; data e hora. A idade exata não é guardada. Não pedimos e-mail, telefone, documento, foto nem localização, e não há
+            campos de texto livre.
           </li>
           <li>
             Os resultados emocionais podem revelar aspectos da vida emocional de adolescentes. Por isso, tratamos esses dados com o mesmo cuidado aplicado a dados

@@ -45,21 +45,33 @@ export function Navbar({ route, immersive }: { route: string; immersive: boolean
             <span className="bg-gradient-to-r from-[#FF8A3D] via-[#FF6FA5] to-brand bg-clip-text text-transparent">Emo</span>
             <span>Quest</span>
           </a>
-          <ul className="hidden gap-1 md:flex">
-            {LINKS.map((l) => (
-              <li key={l.to}>
-                <a
-                  href={`#${l.to}`}
-                  aria-current={isActive(route, l.to) ? 'page' : undefined}
-                  className={`flex min-h-11 items-center rounded-full px-4 font-bold transition ${
-                    isActive(route, l.to) ? 'bg-ink text-white' : 'hover:bg-ink/5'
-                  }`}
-                >
-                  {l.label}
-                </a>
-              </li>
-            ))}
-          </ul>
+          <div className="flex items-center">
+            <ul className="hidden gap-1 md:flex">
+              {LINKS.map((l) => (
+                <li key={l.to}>
+                  <a
+                    href={`#${l.to}`}
+                    aria-current={isActive(route, l.to) ? 'page' : undefined}
+                    className={`flex min-h-11 items-center rounded-full px-4 font-bold transition ${
+                      isActive(route, l.to) ? 'bg-ink text-white' : 'hover:bg-ink/5'
+                    }`}
+                  >
+                    {l.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <a
+              href="#/sala"
+              aria-current={route === '/sala' ? 'page' : undefined}
+              aria-label="Entrar numa sala com código"
+              className="flex min-h-11 items-center gap-1.5 rounded-full bg-brand px-4 font-extrabold text-white transition active:scale-95 md:hidden lg:ml-2 lg:flex"
+            >
+              <span aria-hidden>🔑</span>
+              <span className="min-[400px]:hidden">Código</span>
+              <span className="hidden min-[400px]:inline">Tenho um código</span>
+            </a>
+          </div>
         </nav>
       </header>
 

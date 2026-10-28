@@ -12,5 +12,5 @@
     "noUnusedParameters": true,
     "types": ["node"]
   },
-  "include": ["src", "test", "drizzle.config.ts", "../src/data", "../src/types.ts", "../src/lib/scoring.ts"]
+  "include": ["src", "test", "drizzle.config.ts", "../src/data/stories.ts", "../src/data/emotions.ts", "../src/types.ts", "../src/lib/scoring.ts"]
 }

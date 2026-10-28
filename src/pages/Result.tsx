@@ -4,7 +4,8 @@ import { EmotionInfo } from '../components/EmotionDetail'
 import { ScoreBars } from '../components/ScoreBars'
 import { btnBrand, btnPrimary, btnSecondary, haptic, prefersReducedMotion } from '../components/ui'
 import { getEmotion } from '../data/emotions'
-import { getStory } from '../data/stories'
+import { quickPlayTheme } from '../data/questionBank'
+import { getStory, storiesByTheme, THEMES } from '../data/stories'
 import { rankEmotions, strongestEffect } from '../lib/scoring'
 import { EMOTION_IDS, type RunResult } from '../types'
 
@@ -83,7 +84,15 @@ export function Result({ result, actions, extra }: ResultProps) {
   const tied = ranked.filter((r) => r.value === top.value && r.id !== top.id)
   const trio = ranked.slice(1, 4).filter((r) => r.value > 0)
   const main = getEmotion(top.id)
-  const replayHref = result.storyIds.length > 1 ? '#/jogar/jornada' : `#/jogar/${result.storyIds[0]}`
+  const playedTheme = THEMES.find((t) => storiesByTheme(t.id).map((s) => s.id).join() === result.storyIds.join())
+  const quickTheme = result.storyIds.length === 1 ? quickPlayTheme(result.storyIds[0]) : null
+  const replayHref = quickTheme
+    ? `#/jogar/perguntas/${quickTheme}`
+    : result.storyIds.length === 1
+      ? `#/jogar/${result.storyIds[0]}`
+      : playedTheme
+        ? `#/jogar/tema/${playedTheme.id}`
+        : '#/jogar/jornada'
 
   return (
     <div className="mx-auto max-w-6xl px-4 pt-4 pb-8 md:py-10">
@@ -170,7 +179,7 @@ export function Result({ result, actions, extra }: ResultProps) {
               <li key={i} className="flex items-center gap-3 rounded-2xl bg-paper p-3">
                 <EmotionAvatar id={strongestEffect(l.effects)} size={36} />
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-ink/70">{getStory(l.storyId)?.title}</p>
+                  <p className="text-sm font-bold text-ink/70">{getStory(l.storyId)?.title ?? 'Partida rápida'}</p>
                   <p className="font-bold">{l.choiceText}</p>
                 </div>
               </li>

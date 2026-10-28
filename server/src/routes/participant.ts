@@ -10,7 +10,7 @@ import { HttpError, isUuid, type AppContext } from '../app'
 import { gameSessions, participantIdentities, participants, responses, results, rooms, sessionAggregates, users } from '../db/schema'
 import { publicStats, refreshAggregate } from '../lib/analytics'
 import { randomToken, sha256 } from '../lib/crypto'
-import { dominantOf, GameError, scoresFromCheckin, scoresFromResponses, storiesFinished, validateChoice } from '../lib/game'
+import { ageProfile, dominantOf, GameError, MAX_AGE, MIN_AGE, scoresFromCheckin, scoresFromResponses, storiesFinished, validateChoice } from '../lib/game'
 
 const joinBody = z.object({
   // Nome é opcional e pode ser um apelido. Removemos caracteres de controle.
@@ -20,6 +20,8 @@ const joinBody = z.object({
     .max(40, 'Use até 40 caracteres.')
     .transform((s) => s.replace(/[\p{C}]/gu, ''))
     .optional(),
+  // Idade é opcional; só a faixa etária é gravada.
+  age: z.number().int().min(MIN_AGE, 'Confira a idade.').max(MAX_AGE, 'Confira a idade.').optional(),
   consent: z.literal(true, { error: 'Para participar, é preciso concordar com o uso dos dados descrito acima.' }),
   consentVersion: z.string().max(20),
 })
@@ -88,7 +90,13 @@ export const participantRoutes =
       const token = randomToken()
       const [p] = await db
         .insert(participants)
-        .values({ roomId: room.id, tokenHash: sha256(token), consentVersion: body.consentVersion, consentedAt: new Date() })
+        .values({
+          roomId: room.id,
+          tokenHash: sha256(token),
+          consentVersion: body.consentVersion,
+          consentedAt: new Date(),
+          ageBand: body.age === undefined ? null : ageProfile(body.age).band,
+        })
         .returning({ id: participants.id })
       if (body.displayName) await db.insert(participantIdentities).values({ participantId: p.id, roomId: room.id, displayName: body.displayName })
       return reply.status(201).send({ participantToken: token })

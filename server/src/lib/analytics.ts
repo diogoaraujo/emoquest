@@ -5,14 +5,15 @@
  * (participantes e painel compartilhado), aplicamos ainda, na leitura:
  *  1. Só sessões ENCERRADAS — impede o "ataque de diferença" (comparar o agregado antes e depois
  *     de uma pessoa terminar para descobrir o resultado dela).
- *  2. Limiar k (min_group_size, nunca abaixo de 5): sessões com menos participantes são suprimidas.
+ *  2. Limiar k (min_group_size, nunca abaixo de 3): sessões com menos participantes são suprimidas.
+ *     Com 2 pessoas a sessão é uma dupla e com 1 é individual: participam normalmente, só não há resultado de grupo.
  *  3. Supressão de células pequenas: emoção predominante de menos de 3 pessoas não é exibida.
  *  4. Generalização: percentuais arredondados (1% nas médias, 5% nas contagens) e n em faixas.
  */
 import { eq } from 'drizzle-orm'
 import type { DB } from '../db/client'
 import { results, sessionAggregates } from '../db/schema'
-import { EMOTION_IDS, type EmotionId } from './game'
+import { EMOTION_IDS, groupFormat, type EmotionId, type GroupFormat } from './game'
 
 export type EmotionMap = Record<EmotionId, number>
 const zeros = (): EmotionMap => Object.fromEntries(EMOTION_IDS.map((id) => [id, 0])) as EmotionMap
@@ -85,6 +86,8 @@ export interface PublicSessionStats {
   suppressed: boolean
   /** Motivo da supressão, para explicar na interface. */
   reason?: 'aberta' | 'poucos-participantes'
+  /** Só em sessões encerradas abaixo de k: individual, dupla ou grupo pequeno. */
+  format?: GroupFormat | null
   /** Faixa de participantes (ex.: 10 = "10 ou mais"), nunca o número exato. */
   nAtLeast: number | null
   shares: EmotionMap | null
@@ -96,7 +99,7 @@ export function publicStats(meta: SessionMeta, agg: AggregateRow | undefined, k:
   const base = { id: meta.id, title: meta.title, activity: meta.activity, date: (meta.closedAt ?? meta.createdAt).toISOString() }
   const n = agg?.n ?? 0
   if (meta.status !== 'encerrada') return { ...base, suppressed: true, reason: 'aberta', nAtLeast: null, shares: null, dominantPct: null }
-  if (n < k) return { ...base, suppressed: true, reason: 'poucos-participantes', nAtLeast: null, shares: null, dominantPct: null }
+  if (n < k) return { ...base, suppressed: true, reason: 'poucos-participantes', format: groupFormat(n), nAtLeast: null, shares: null, dominantPct: null }
 
   const shares = zeros()
   const dominantPct = {} as Record<EmotionId, number | null>
@@ -105,7 +108,7 @@ export function publicStats(meta: SessionMeta, agg: AggregateRow | undefined, k:
     const count = agg!.dominantCounts[id] ?? 0
     dominantPct[id] = count === 0 ? 0 : count < MIN_CELL ? null : Math.round((count / n) * 20) * 5
   }
-  return { ...base, suppressed: false, nAtLeast: Math.floor(n / 5) * 5, shares, dominantPct }
+  return { ...base, suppressed: false, nAtLeast: Math.max(k, Math.floor(n / 5) * 5), shares, dominantPct }
 }
 
 /** Média ponderada de várias sessões (usada no total da sala). */

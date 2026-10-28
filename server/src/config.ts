@@ -25,6 +25,6 @@ export function loadConfig(env = process.env): Config {
     publicAppUrl: env.PUBLIC_APP_URL ?? 'http://localhost:5173',
     authTokenTtlDays: Number(env.AUTH_TOKEN_TTL_DAYS ?? 7),
     consentVersion: env.CONSENT_VERSION ?? '2026-10',
-    minK: 5,
+    minK: 3,
   }
 }

@@ -3,10 +3,12 @@
  * mas recalcula tudo aqui: o cliente só informa "qual escolha", nunca pontos.
  */
 import { STORIES, getStory } from '../../../src/data/stories'
+import { ageProfile, MAX_AGE, MIN_AGE } from '../../../src/lib/age'
+import { groupFormat, type GroupFormat } from '../../../src/lib/groupFormat'
 import { addEffects, emptyScores, rankEmotions } from '../../../src/lib/scoring'
 import { EMOTION_IDS, type EmotionId, type Scores } from '../../../src/types'
 
-export { EMOTION_IDS, STORIES, getStory, type EmotionId, type Scores }
+export { ageProfile, EMOTION_IDS, MAX_AGE, MIN_AGE, STORIES, getStory, groupFormat, type EmotionId, type GroupFormat, type Scores }
 
 export const isEmotionId = (v: string): v is EmotionId => (EMOTION_IDS as readonly string[]).includes(v)
 

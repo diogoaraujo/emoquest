@@ -8,6 +8,7 @@ import { btnPrimary, btnSecondary } from '../../components/ui'
 import { getEmotion } from '../../data/emotions'
 import { getStory } from '../../data/stories'
 import { navigate } from '../../hooks/useHashRoute'
+import { GROUP_FORMAT_LABEL, groupFormat } from '../../lib/groupFormat'
 import { EMOTION_IDS } from '../../types'
 import { StatusBadge } from './RoomDetail'
 
@@ -64,6 +65,7 @@ export function SessionDetail({ roomId, sessionId }: { roomId: string; sessionId
         <p className="font-display text-5xl font-extrabold tabular-nums">{stats.n}</p>
         <p className="flex-1 text-lg font-bold">
           {stats.n === 1 ? 'pessoa concluiu' : 'pessoas concluíram'}
+          {groupFormat(stats.n) && <span className="ml-2 rounded-full bg-ink/10 px-3 py-0.5 align-middle text-sm font-extrabold">{GROUP_FORMAT_LABEL[groupFormat(stats.n)!]}</span>}
           {open && <span className="block text-sm font-normal text-ink/70">Atualiza automaticamente a cada 5 segundos.</span>}
         </p>
       </div>
@@ -75,7 +77,7 @@ export function SessionDetail({ roomId, sessionId }: { roomId: string; sessionId
       </div>
       {open && (
         <p className="text-sm text-ink/70">
-          Ao encerrar, ninguém mais consegue responder e o resultado da turma (anonimizado) passa a aparecer para os participantes, se houver pelo menos k pessoas.
+          Ao encerrar, ninguém mais consegue responder e o resultado da turma (anonimizado) passa a aparecer para os participantes, se houver pelo menos k pessoas. Em dupla ou individual, cada pessoa vê só o próprio resultado.
         </p>
       )}
 

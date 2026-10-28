@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "perguntas:check": "node scripts/check-perguntas.mjs"
   },
   "dependencies": {
     "qrcode": "^1.5.4",

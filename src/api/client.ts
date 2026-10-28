@@ -1,3 +1,5 @@
+import type { AgeBand } from '../lib/age'
+import type { GroupFormat } from '../lib/groupFormat'
 import type { EmotionId, Scores } from '../types'
 
 /** Em desenvolvimento o Vite redireciona /api para o servidor local; em produção use VITE_API_URL. */
@@ -143,6 +145,7 @@ export interface PublicSessionStats {
   date: string
   suppressed: boolean
   reason?: 'aberta' | 'poucos-participantes'
+  format?: GroupFormat | null
   nAtLeast: number | null
   shares: EmotionMap | null
   dominantPct: Record<EmotionId, number | null> | null
@@ -165,6 +168,7 @@ export type DashboardData =
 export interface Participant {
   id: string
   displayName: string | null
+  ageBand: AgeBand | null
   joinedAt: string
   lastSeenAt: string
   sessionsCompleted: number
@@ -225,7 +229,7 @@ export const api = {
     request<{ room: { name: string; description: string; ownerName: string; retentionDays: number; minGroupSize: number }; consentVersion: string }>(
       `/public/rooms/${encodeURIComponent(code)}`,
     ),
-  join: (code: string, body: { displayName?: string; consent: boolean; consentVersion: string }) =>
+  join: (code: string, body: { displayName?: string; age?: number; consent: boolean; consentVersion: string }) =>
     request<{ participantToken: string }>(`/public/rooms/${encodeURIComponent(code)}/join`, { method: 'POST', body }),
   me: (participant: string) =>
     request<{ room: { name: string; joinCode: string }; displayName: string | null; sessions: ParticipantSession[] }>('/public/me', { participant }),

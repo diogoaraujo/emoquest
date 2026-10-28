@@ -51,8 +51,8 @@ export const rooms = pgTable(
     /** Token do painel compartilhado (somente dados agregados). Nulo = compartilhamento desligado. */
     shareToken: text('share_token').unique(),
     /** k mínimo para exibir qualquer resultado agregado a quem não é responsável. */
-    minGroupSize: integer('min_group_size').notNull().default(5),
-    retentionDays: integer('retention_days').notNull().default(365),
+    minGroupSize: integer('min_group_size').notNull().default(3),
+    retentionDays: integer('retention_days').notNull().default(90),
     /** Responsável declarou base legal / autorização institucional ao criar a sala. */
     legalBasisAckAt: timestamp('legal_basis_ack_at', { withTimezone: true }).notNull(),
     createdAt: createdAt(),
@@ -71,6 +71,8 @@ export const participants = pgTable(
     tokenHash: text('token_hash').notNull().unique(),
     consentVersion: text('consent_version').notNull(),
     consentedAt: timestamp('consented_at', { withTimezone: true }).notNull(),
+    /** Faixa etária ("13-16" ou "17-23"), opcional. A idade exata nunca é guardada. */
+    ageBand: text('age_band'),
     lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
     createdAt: createdAt(),
   },

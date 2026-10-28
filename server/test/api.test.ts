@@ -13,11 +13,11 @@ const config = { ...loadConfig({}), consentVersion: 'teste-1' }
 
 type Json = Record<string, any>
 
-async function call(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', url: string, opts: { body?: unknown; token?: string; participant?: string } = {}) {
+async function call(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', url: string, opts: { body?: unknown; token?: string; participant?: string; ip?: string } = {}) {
   const headers: Record<string, string> = {}
   if (opts.token) headers.authorization = `Bearer ${opts.token}`
   if (opts.participant) headers['x-participant-token'] = opts.participant
-  const res = await app.inject({ method, url, headers, payload: opts.body as Json | undefined })
+  const res = await app.inject({ method, url, headers, payload: opts.body as Json | undefined, remoteAddress: opts.ip })
   return { status: res.statusCode, body: res.body ? (JSON.parse(res.body) as Json) : {}, raw: res.body }
 }
 
@@ -27,8 +27,9 @@ async function registerOwner(email: string) {
   return r.body.token as string
 }
 
-async function join(code: string, displayName?: string) {
-  const r = await call('POST', `/api/public/rooms/${code}/join`, { body: { displayName, consent: true, consentVersion: 'teste-1' } })
+/** `ip` separa o limite de entradas por minuto quando um teste precisa de muitos participantes. */
+async function join(code: string, displayName?: string, ip?: string) {
+  const r = await call('POST', `/api/public/rooms/${code}/join`, { body: { displayName, consent: true, consentVersion: 'teste-1' }, ip })
   expect(r.status).toBe(201)
   return r.body.participantToken as string
 }
@@ -73,8 +74,9 @@ describe('autenticação e isolamento por sala', () => {
     expect((await call('POST', '/api/rooms', { token: ownerA, body: { name: 'X' } })).status).toBe(400)
   })
 
-  it('não permite k abaixo de 5', async () => {
+  it('não permite k abaixo de 3; padrões são k = 3 e 90 dias de retenção', async () => {
     expect((await call('POST', '/api/rooms', { token: ownerA, body: { name: 'Sala', legalBasisAck: true, minGroupSize: 2 } })).status).toBe(400)
+    expect(room).toMatchObject({ minGroupSize: 3, retentionDays: 90 })
   })
 
   it('outra conta não enxerga nem altera a sala (404, sem revelar existência)', async () => {
@@ -214,6 +216,35 @@ describe('privacidade e anonimização', () => {
   })
 })
 
+describe('faixa etária', () => {
+  it('guarda só a faixa (fora das faixas usa a mais próxima) e a idade é opcional', async () => {
+    const r = (await call('POST', '/api/rooms', { token: ownerA, body: { name: 'Idades', legalBasisAck: true } })).body.room
+    const enter = (age?: number) =>
+      call('POST', `/api/public/rooms/${r.joinCode}/join`, { body: { displayName: `Idade ${age}`, age, consent: true, consentVersion: 'teste-1' }, ip: '10.0.0.4' })
+    for (const age of [12, 15, 18, 22, 30, undefined]) expect((await enter(age)).status).toBe(201)
+    expect((await enter(3)).status).toBe(400)
+    const list = (await call('GET', `/api/rooms/${r.id}/participants`, { token: ownerA })).body.participants as Json[]
+    expect(list.map((p) => p.ageBand)).toEqual(['13-16', '13-16', '17-23', '17-23', '17-23', null])
+    expect(JSON.stringify(list)).not.toMatch(/"age":/)
+  })
+})
+
+describe('formato da sessão (individual, dupla, grupo)', () => {
+  it('ninguém é impedido de participar; com 1 é individual, com 2 é dupla e com 3 aparece o resultado do grupo', async () => {
+    const s = (await call('POST', `/api/rooms/${room.id}/sessions`, { token: ownerA, body: { title: 'Formato', activity: 'checkin' } })).body.session
+    const close = (status: string) => call('PATCH', `/api/rooms/${room.id}/sessions/${s.id}`, { token: ownerA, body: { status } })
+    const expected = [{ format: 'individual' }, { format: 'dupla' }, { suppressed: false, nAtLeast: 3 }]
+    for (const want of expected) {
+      await close('aberta')
+      const p = await join(room.joinCode, undefined, '10.0.0.3')
+      const done = await call('POST', `/api/public/sessions/${s.id}/checkin`, { participant: p, body: { items: [{ emotion: 'alegria', intensity: 2 }] } })
+      expect(done.status).toBeLessThan(300)
+      await close('encerrada')
+      expect((await call('GET', `/api/public/sessions/${s.id}/group`, { participant: p })).body.stats).toMatchObject(want)
+    }
+  })
+})
+
 describe('retenção', () => {
   it('mantém só o agregado de sessões antigas com k pessoas e apaga as pequenas', async () => {
     const db = database.db
@@ -223,7 +254,7 @@ describe('retenção', () => {
     await db.update(gameSessions).set({ createdAt: old }).where(eq(gameSessions.id, small.id))
     await db.update(gameSessions).set({ createdAt: old }).where(eq(gameSessions.id, session.id))
 
-    const summary = await applyRetention(db, 5)
+    const summary = await applyRetention(db, 3)
     expect(summary.sessionsDeleted).toBeGreaterThanOrEqual(1)
     const dash = (await call('GET', `/api/rooms/${room.id}/dashboard`, { token: ownerA })).body
     expect(dash.sessions.find((x: Json) => x.id === small.id)).toBeUndefined()

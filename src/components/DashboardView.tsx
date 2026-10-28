@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { DashboardData, EmotionMap } from '../api/client'
 import { getEmotion } from '../data/emotions'
+import { GROUP_FORMAT_LABEL } from '../lib/groupFormat'
 import { EMOTION_IDS, type EmotionId } from '../types'
 import { ChartFrame, CompareBars, DataTable, EmotionBars, EvolutionChart, Kpi } from './charts'
 import { EmotionAvatar } from './EmotionAvatar'
@@ -43,7 +44,11 @@ function normalize(data: DashboardData): ViewSession[] {
     date: s.date,
     visible: !s.suppressed,
     hiddenReason:
-      s.reason === 'aberta' ? 'Sessão em andamento: o resultado aparece quando ela for encerrada.' : `Menos de ${data.room.minGroupSize} participantes: oculto para proteger a privacidade.`,
+      s.reason === 'aberta'
+        ? 'Sessão em andamento: o resultado aparece quando ela for encerrada.'
+        : s.format === 'individual' || s.format === 'dupla'
+          ? `Sessão ${GROUP_FORMAT_LABEL[s.format].toLowerCase()}: resultado oculto para proteger a privacidade.`
+          : `Menos de ${data.room.minGroupSize} participantes: oculto para proteger a privacidade.`,
     nLabel: s.nAtLeast !== null ? `${s.nAtLeast} ou mais pessoas` : '—',
     shares: s.shares,
     dominant: s.dominantPct
