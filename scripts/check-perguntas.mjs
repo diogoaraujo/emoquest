@@ -16,6 +16,7 @@ const root = chunkMode ? process.argv[3] : 'src/data/perguntas'
 const errors = []
 const warnings = []
 // Heurística (só avisa): verbos de estado seguidos de adjetivos que marcam gênero de quem joga.
+const GENDERED_OPTION = /\b(sozinh[oa]s?|sentad[oa]|calad[oa]|deitad[oa]|quiet[oa]|parad[oa] (na|no|em|olhando)|encolhid[oa]|de olhos fechados e (calad|quiet)[oa])\b/i
 const GENDERED =
   /\b(ficar|fica|ficou|estar|está|estava|sentir-se|se sentir|se sente|sentindo-se|parecer)\s+(muito\s+|tão\s+|meio\s+)?(sozinh|preocupad|chatead|cansad|nervos|envergonhad|animad|orgulhos|ansios|perdid|convidad|escolhid|excluíd|irritad|frustrad|magoad|assustad|confus|empolgad|aliviad|culpad|isolad|obrigad|emocionad|decepcionad|tranquil|calm|sobrecarregad)(o|a|os|as)\b/i
 const seenText = new Map()
@@ -66,6 +67,14 @@ function check(q, where) {
   for (const t of [q.text, ...q.choices.map((c) => c.text)]) {
     const m = typeof t === 'string' && t.match(GENDERED)
     if (m) warnings.push(`${where}: possível marca de gênero de quem joga ("${m[0]}")`)
+  }
+  // "decidido(a)", "cansada\o", "sozinho/a": marcação de gênero improvisada, proibida.
+  for (const t of [q.text, ...q.choices.map((c) => c.text)])
+    if (typeof t === 'string' && /\p{L}(\\[oa]|\([oa]\)|\/[oa])(?!\p{L})/u.test(t)) err(`marcação de gênero improvisada em "${t.slice(0, 60)}" — reescreva de forma neutra`)
+  // Nas opções quem age é sempre quem joga: estes adjetivos soltos quase sempre se referem a essa pessoa.
+  for (const c of q.choices) {
+    const m = typeof c.text === 'string' && c.text.match(GENDERED_OPTION)
+    if (m) warnings.push(`${where}: possível marca de gênero de quem joga na opção ("${m[0]}")`)
   }
   const key = norm(q.text ?? '')
   if (seenText.has(key)) err(`texto repetido (igual a ${seenText.get(key)})`)
