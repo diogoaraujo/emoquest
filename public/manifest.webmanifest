@@ -1,0 +1,13 @@
+{
+  "name": "EmoQuest",
+  "short_name": "EmoQuest",
+  "description": "Um jogo interativo sobre emoções para adolescentes.",
+  "lang": "pt-BR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fff9f1",
+  "theme_color": "#fff9f1",
+  "icons": [{ "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

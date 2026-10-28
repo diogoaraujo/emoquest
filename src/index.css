@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Baloo 2", "Nunito", ui-sans-serif, system-ui, sans-serif;
+  --color-ink: #2a2346;
+  --color-paper: #fff9f1;
+  --color-brand: #6a45f5;
+
+  --animate-float: float 4s ease-in-out infinite;
+  --animate-pop: pop 0.35s ease-out both;
+  --animate-fade: fade 0.3s ease-out both;
+  --animate-slide-in: slide-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-sheet: sheet 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-8px) rotate(-2deg); }
+  }
+  @keyframes pop {
+    from { opacity: 0; transform: translateY(10px) scale(0.97); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slide-in {
+    from { opacity: 0; transform: translateX(28px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes sheet {
+    from { transform: translateY(100%); }
+    to { transform: none; }
+  }
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  overflow-x: clip;
+}
+
+/* Toque: sem atraso de duplo toque e sem o "flash" cinza do navegador. */
+a, button, summary, [role="button"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Na camada base, para que utilitários como outline-none possam sobrescrever. */
+@layer base {
+  :focus-visible {
+    outline: 3px solid var(--color-brand);
+    outline-offset: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  @page { margin: 12mm; }
+  body { background: #fff; }
+}

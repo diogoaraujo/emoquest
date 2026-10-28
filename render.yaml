@@ -1,0 +1,22 @@
+# Blueprint do Render para a API do EmoQuest.
+# Render → New → Blueprint → selecione este repositório. Os valores marcados com sync: false são pedidos na criação.
+services:
+  - type: web
+    name: emoquest-api
+    runtime: docker
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL # string de conexão do Postgres (ex.: Neon, com ?sslmode=require)
+        sync: false
+      - key: CORS_ORIGINS # ex.: https://SEU-USUARIO.github.io
+        sync: false
+      - key: PUBLIC_APP_URL # ex.: https://SEU-USUARIO.github.io/emoquest
+        sync: false
+      - key: AUTH_TOKEN_TTL_DAYS
+        value: "7"
+      - key: CONSENT_VERSION
+        value: "2026-10"
