@@ -133,6 +133,16 @@ O workflow roda os testes da API e o build do frontend em todo push e pull reque
 
 Use sempre HTTPS em produção.
 
+### Publicando tudo no Render (alternativa ao GitHub Pages)
+
+O [render.yaml](render.yaml) cria a API (`emoquest-api`) e o frontend como site estático (`emoquest`), sem depender do GitHub Actions:
+
+1. Crie o banco PostgreSQL (ex.: Neon) e copie a string de conexão.
+2. No Render, vá em **New → Blueprint**, selecione o repositório e preencha `DATABASE_URL` (e, opcionalmente, `VITE_PRIVACY_CONTACT`).
+3. Confira as URLs geradas. Se o Render acrescentar um sufixo aos nomes, ajuste `CORS_ORIGINS`, `PUBLIC_APP_URL` (na API) e `VITE_API_URL` (no site) e faça um novo deploy do site.
+
+O plano gratuito hiberna a API após um período sem uso; a primeira requisição depois disso leva alguns segundos.
+
 ## Aviso
 
 O EmoQuest é uma ferramenta educativa para estimular o autoconhecimento e a inteligência emocional. Ele não é um teste psicológico e não substitui acompanhamento profissional.

@@ -1,5 +1,9 @@
-# Blueprint do Render para a API do EmoQuest.
+# Blueprint do Render: API + frontend do EmoQuest.
 # Render → New → Blueprint → selecione este repositório. Os valores marcados com sync: false são pedidos na criação.
+#
+# As URLs abaixo assumem os nomes padrão do Render (https://<nome>.onrender.com). Se o Render acrescentar
+# um sufixo ao nome (ex.: emoquest-x1y2.onrender.com), ajuste CORS_ORIGINS, PUBLIC_APP_URL e VITE_API_URL
+# no painel e faça um novo deploy do frontend (VITE_API_URL entra no build).
 services:
   - type: web
     name: emoquest-api
@@ -12,11 +16,25 @@ services:
     envVars:
       - key: DATABASE_URL # string de conexão do Postgres (ex.: Neon, com ?sslmode=require)
         sync: false
-      - key: CORS_ORIGINS # ex.: https://SEU-USUARIO.github.io
-        sync: false
-      - key: PUBLIC_APP_URL # ex.: https://SEU-USUARIO.github.io/emoquest
-        sync: false
+      - key: CORS_ORIGINS
+        value: https://emoquest.onrender.com
+      - key: PUBLIC_APP_URL
+        value: https://emoquest.onrender.com
       - key: AUTH_TOKEN_TTL_DAYS
         value: "7"
       - key: CONSENT_VERSION
         value: "2026-10"
+
+  - type: web
+    name: emoquest
+    runtime: static
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: VITE_API_URL
+        value: https://emoquest-api.onrender.com
+      - key: VITE_PRIVACY_CONTACT # contato do(a) encarregado(a) de dados exibido na política de privacidade
+        sync: false
